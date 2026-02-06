@@ -36,21 +36,85 @@ export function CameraScanner({ onScan, onError }: CameraScannerProps) {
       const scanner = new Html5Qrcode("scanner-container");
       scannerRef.current = scanner;
 
-      await scanner.start(
-        { facingMode: "environment" },
-        SCANNER_CONFIG,
-        (decodedText) => {
-          onScan(decodedText);
-          stopScanner();
-        },
-        () => {
-          // Ignore scan failures (continuous scanning noise)
-        }
-      );
+      // Try with exact environment constraint first (better for mobile)
+      try {
+        await scanner.start(
+          { facingMode: { exact: "environment" } },
+          SCANNER_CONFIG,
+          (decodedText) => {
+            onScan(decodedText);
+            stopScanner();
+          },
+          () => {
+            // Ignore scan failures (continuous scanning noise)
+          }
+        );
+        setIsActive(true);
+      } catch (exactErr) {
+        // Fallback: Try to enumerate cameras and use the first rear camera
+        try {
+          const cameras = await Html5Qrcode.getCameras();
 
-      setIsActive(true);
+          if (cameras && cameras.length > 0) {
+            // Try to find a rear camera by label
+            const rearCamera = cameras.find(
+              (camera) =>
+                camera.label.toLowerCase().includes("back") ||
+                camera.label.toLowerCase().includes("rear") ||
+                camera.label.toLowerCase().includes("environment")
+            );
+
+            const cameraId = rearCamera ? rearCamera.id : cameras[cameras.length - 1].id;
+
+            await scanner.start(
+              cameraId,
+              SCANNER_CONFIG,
+              (decodedText) => {
+                onScan(decodedText);
+                stopScanner();
+              },
+              () => {
+                // Ignore scan failures (continuous scanning noise)
+              }
+            );
+            setIsActive(true);
+          } else {
+            throw new Error("No cameras found on this device");
+          }
+        } catch (fallbackErr) {
+          // If enumeration also fails, try simple facingMode
+          await scanner.start(
+            { facingMode: "environment" },
+            SCANNER_CONFIG,
+            (decodedText) => {
+              onScan(decodedText);
+              stopScanner();
+            },
+            () => {
+              // Ignore scan failures (continuous scanning noise)
+            }
+          );
+          setIsActive(true);
+        }
+      }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Camera access denied";
+      let errorMessage = "Camera access denied";
+
+      if (err instanceof Error) {
+        errorMessage = err.message;
+
+        // Provide more helpful error messages
+        if (errorMessage.includes("Permission")) {
+          errorMessage = "Camera permission denied. Please allow camera access in your browser settings.";
+        } else if (errorMessage.includes("NotFoundError") || errorMessage.includes("not found")) {
+          errorMessage = "No camera found on this device.";
+        } else if (errorMessage.includes("NotAllowedError")) {
+          errorMessage = "Camera access was blocked. Please check your browser permissions.";
+        } else if (errorMessage.includes("NotReadableError")) {
+          errorMessage = "Camera is already in use by another application.";
+        }
+      }
+
       onError?.(errorMessage);
       setIsActive(false);
     } finally {

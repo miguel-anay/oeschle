@@ -98,3 +98,47 @@ Must verify `start()` called with:
 - Button disabled during initialization
 - No multiple simultaneous start attempts
 - onError optional (component works without it)
+
+## Product Search Testing (US-3.1)
+
+### OpenFoodFacts API Testing
+- **Endpoint**: `https://world.openfoodfacts.org/api/v0/product/{barcode}.json`
+- **Success Response**: `{ status: 1, product: {...} }`
+- **Not Found Response**: `{ status: 0, status_verbose: "product not found" }`
+
+### Server Actions Testing Pattern
+```typescript
+const mockFetch = vi.fn();
+vi.stubGlobal('fetch', mockFetch);
+
+// Always verify URL construction
+expect(mockFetch).toHaveBeenCalledWith(
+  `https://world.openfoodfacts.org/api/v0/product/${barcode}.json`
+);
+```
+
+### API Field Name Transformation
+- **API Format**: `energy-kcal_100g` (hyphenated)
+- **App Format**: `energy_kcal_100g` (underscored)
+- Adapter must transform nutriment field names
+
+### Product Adapter Testing
+1. **Complete data** → Full transformation
+2. **Missing fields** → Defaults (empty string for text, 0 for numbers)
+3. **Null/undefined** → Handle with defaults
+4. **Empty object** → All default values
+5. **Partial nutriments** → Mix of real + default values
+
+### Test Organization for Server Actions
+1. **Happy Path** - Valid barcodes (6-digit, 13-digit, real products)
+2. **Error States** - Product not found (status: 0), network errors (500, 404, timeout)
+3. **Edge Cases** - Empty product data, malformed JSON, URL construction
+4. **API Integration** - Verify fetch calls, headers
+
+### Expected Error Messages
+- Product not found: "Product not found" (thrown error)
+- Network errors: Propagate original error message
+
+### Test Files Created
+- `actions/product.test.ts` - 15 test cases for getProduct()
+- `actions/product.adapter.test.ts` - 13 test cases for adaptProduct()

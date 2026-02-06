@@ -142,3 +142,34 @@ expect(mockFetch).toHaveBeenCalledWith(
 ### Test Files Created
 - `actions/product.test.ts` - 15 test cases for getProduct()
 - `actions/product.adapter.test.ts` - 13 test cases for adaptProduct()
+
+## Loading Skeleton Testing (US-3.2)
+
+### Skeleton/Loading Component Testing Pattern
+- Always test for `aria-busy="true"` and `role="status"` for accessibility
+- Verify `aria-label` describes the loading state clearly
+- Use `aria-live="polite"` for non-intrusive screen reader updates
+- Test data-testid attributes for each skeleton element (image, name, details)
+- Verify Tailwind classes directly with `toHaveClass()` matcher
+- Test animation classes (e.g., `animate-pulse`) separately
+- Verify no actual content is rendered (empty text content)
+- Test visual consistency with actual component layout
+
+### ProductSkeleton Component Structure
+- Container: `data-testid="product-skeleton"`, `role="status"`, `aria-busy="true"`, `aria-live="polite"`, `aria-label="Loading product information"`
+- Image placeholder: `data-testid="skeleton-image"`, `h-48`, `bg-slate-200`, `rounded-lg`
+- Name placeholder: `data-testid="skeleton-name"`, `h-6`, `w-3/4`, `bg-slate-200`, `rounded`
+- Details placeholder: `data-testid="skeleton-details"`, `h-4`, `w-1/2`, `bg-slate-200`, `rounded`
+- Container classes: `animate-pulse`, `space-y-4`
+
+### Test Categories for Loading Components
+1. **Happy Path** - Basic rendering of skeleton structure
+2. **Animation** - Verify loading animation classes
+3. **Skeleton Elements Layout** - Dimensions and spacing
+4. **Styling** - Colors, borders, consistent theming
+5. **Accessibility** - ARIA attributes, roles, labels
+6. **Edge Cases** - Consistency across renders, no data leakage
+7. **Visual Consistency** - Match actual component layout
+
+### Test Files Created
+- `components/product-skeleton.test.tsx` - 23 test cases covering structure, animation, layout, styling, accessibility, edge cases

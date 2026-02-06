@@ -338,4 +338,265 @@ describe("BarcodeInput", () => {
       expect(onSearch).toHaveBeenNthCalledWith(2, "7890123");
     });
   });
+
+  describe("Validation Feedback", () => {
+    it("should show error message when code has 1 digit (below minimum)", async () => {
+      // Arrange
+      const onSearch = vi.fn();
+      const user = userEvent.setup();
+      render(<BarcodeInput onSearch={onSearch} />);
+
+      const input = screen.getByPlaceholderText(/ingresa código de barras/i);
+
+      // Act
+      await user.type(input, "1");
+
+      // Assert
+      expect(
+        screen.getByText(/el código debe tener al menos 6 dígitos/i)
+      ).toBeInTheDocument();
+    });
+
+    it("should show error message when code has 5 digits (below minimum)", async () => {
+      // Arrange
+      const onSearch = vi.fn();
+      const user = userEvent.setup();
+      render(<BarcodeInput onSearch={onSearch} />);
+
+      const input = screen.getByPlaceholderText(/ingresa código de barras/i);
+
+      // Act
+      await user.type(input, "12345");
+
+      // Assert
+      expect(
+        screen.getByText(/el código debe tener al menos 6 dígitos/i)
+      ).toBeInTheDocument();
+    });
+
+    it("should show error message when code has 14 digits (above maximum)", async () => {
+      // Arrange
+      const onSearch = vi.fn();
+      const user = userEvent.setup();
+      render(<BarcodeInput onSearch={onSearch} />);
+
+      const input = screen.getByPlaceholderText(/ingresa código de barras/i);
+
+      // Act
+      await user.type(input, "12345678901234");
+
+      // Assert
+      expect(
+        screen.getByText(/el código no puede tener más de 13 dígitos/i)
+      ).toBeInTheDocument();
+    });
+
+    it("should show error message when code has 20 digits (above maximum)", async () => {
+      // Arrange
+      const onSearch = vi.fn();
+      const user = userEvent.setup();
+      render(<BarcodeInput onSearch={onSearch} />);
+
+      const input = screen.getByPlaceholderText(/ingresa código de barras/i);
+
+      // Act
+      await user.type(input, "12345678901234567890");
+
+      // Assert
+      expect(
+        screen.getByText(/el código no puede tener más de 13 dígitos/i)
+      ).toBeInTheDocument();
+    });
+
+    it("should have error styling (border-destructive) on input when code is too short", async () => {
+      // Arrange
+      const onSearch = vi.fn();
+      const user = userEvent.setup();
+      render(<BarcodeInput onSearch={onSearch} />);
+
+      const input = screen.getByPlaceholderText(/ingresa código de barras/i);
+
+      // Act
+      await user.type(input, "123");
+
+      // Assert
+      expect(input).toHaveClass("border-destructive");
+    });
+
+    it("should have error styling (border-destructive) on input when code is too long", async () => {
+      // Arrange
+      const onSearch = vi.fn();
+      const user = userEvent.setup();
+      render(<BarcodeInput onSearch={onSearch} />);
+
+      const input = screen.getByPlaceholderText(/ingresa código de barras/i);
+
+      // Act
+      await user.type(input, "12345678901234");
+
+      // Assert
+      expect(input).toHaveClass("border-destructive");
+    });
+
+    it("should NOT show error message when input is empty", () => {
+      // Arrange
+      const onSearch = vi.fn();
+
+      // Act
+      render(<BarcodeInput onSearch={onSearch} />);
+
+      // Assert
+      expect(
+        screen.queryByText(/el código debe tener al menos 6 dígitos/i)
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/el código no puede tener más de 13 dígitos/i)
+      ).not.toBeInTheDocument();
+    });
+
+    it("should NOT show error message when code is valid (6 digits)", async () => {
+      // Arrange
+      const onSearch = vi.fn();
+      const user = userEvent.setup();
+      render(<BarcodeInput onSearch={onSearch} />);
+
+      const input = screen.getByPlaceholderText(/ingresa código de barras/i);
+
+      // Act
+      await user.type(input, "123456");
+
+      // Assert
+      expect(
+        screen.queryByText(/el código debe tener al menos 6 dígitos/i)
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/el código no puede tener más de 13 dígitos/i)
+      ).not.toBeInTheDocument();
+    });
+
+    it("should NOT show error message when code is valid (13 digits)", async () => {
+      // Arrange
+      const onSearch = vi.fn();
+      const user = userEvent.setup();
+      render(<BarcodeInput onSearch={onSearch} />);
+
+      const input = screen.getByPlaceholderText(/ingresa código de barras/i);
+
+      // Act
+      await user.type(input, "3017620422003");
+
+      // Assert
+      expect(
+        screen.queryByText(/el código debe tener al menos 6 dígitos/i)
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/el código no puede tener más de 13 dígitos/i)
+      ).not.toBeInTheDocument();
+    });
+
+    it("should NOT have error styling when code is valid", async () => {
+      // Arrange
+      const onSearch = vi.fn();
+      const user = userEvent.setup();
+      render(<BarcodeInput onSearch={onSearch} />);
+
+      const input = screen.getByPlaceholderText(/ingresa código de barras/i);
+
+      // Act
+      await user.type(input, "123456");
+
+      // Assert
+      expect(input).not.toHaveClass("border-destructive");
+    });
+
+    it("should clear error when user corrects code from too short to valid", async () => {
+      // Arrange
+      const onSearch = vi.fn();
+      const user = userEvent.setup();
+      render(<BarcodeInput onSearch={onSearch} />);
+
+      const input = screen.getByPlaceholderText(/ingresa código de barras/i);
+
+      // Act - Type invalid code
+      await user.type(input, "123");
+
+      // Assert - Error should be visible
+      expect(
+        screen.getByText(/el código debe tener al menos 6 dígitos/i)
+      ).toBeInTheDocument();
+
+      // Act - Correct to valid length
+      await user.type(input, "456");
+
+      // Assert - Error should be cleared
+      expect(
+        screen.queryByText(/el código debe tener al menos 6 dígitos/i)
+      ).not.toBeInTheDocument();
+    });
+
+    it("should clear error when user corrects code from too long to valid", async () => {
+      // Arrange
+      const onSearch = vi.fn();
+      const user = userEvent.setup();
+      render(<BarcodeInput onSearch={onSearch} />);
+
+      const input = screen.getByPlaceholderText(
+        /ingresa código de barras/i
+      ) as HTMLInputElement;
+
+      // Act - Type invalid code (14 digits)
+      await user.type(input, "12345678901234");
+
+      // Assert - Error should be visible
+      expect(
+        screen.getByText(/el código no puede tener más de 13 dígitos/i)
+      ).toBeInTheDocument();
+
+      // Act - Clear and type valid code
+      await user.clear(input);
+      await user.type(input, "1234567890123");
+
+      // Assert - Error should be cleared
+      expect(
+        screen.queryByText(/el código no puede tener más de 13 dígitos/i)
+      ).not.toBeInTheDocument();
+    });
+
+    it("should display helper text below input when there is an error", async () => {
+      // Arrange
+      const onSearch = vi.fn();
+      const user = userEvent.setup();
+      render(<BarcodeInput onSearch={onSearch} />);
+
+      const input = screen.getByPlaceholderText(/ingresa código de barras/i);
+
+      // Act
+      await user.type(input, "12");
+
+      // Assert
+      const errorMessage = screen.getByText(
+        /el código debe tener al menos 6 dígitos/i
+      );
+      expect(errorMessage).toBeInTheDocument();
+      expect(errorMessage.tagName.toLowerCase()).toBe("p");
+    });
+
+    it("should show error text with destructive color styling", async () => {
+      // Arrange
+      const onSearch = vi.fn();
+      const user = userEvent.setup();
+      render(<BarcodeInput onSearch={onSearch} />);
+
+      const input = screen.getByPlaceholderText(/ingresa código de barras/i);
+
+      // Act
+      await user.type(input, "999");
+
+      // Assert
+      const errorMessage = screen.getByText(
+        /el código debe tener al menos 6 dígitos/i
+      );
+      expect(errorMessage).toHaveClass("text-destructive");
+    });
+  });
 });

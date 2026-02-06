@@ -173,3 +173,127 @@ expect(mockFetch).toHaveBeenCalledWith(
 
 ### Test Files Created
 - `components/product-skeleton.test.tsx` - 23 test cases covering structure, animation, layout, styling, accessibility, edge cases
+
+## Product Display Testing (US-3.3)
+
+### ProductCard Component Testing Pattern
+- **Image Fallback**: Test empty string, null, and undefined for `image_url`
+  - Fallback: `/placeholder-product.png`
+  - Always verify alt text includes product name for accessibility
+- **Price Display**: Format "S/. XX.XX" (always 2 decimals, range 5-150)
+- **Nutritional Info**: Test complete display with units (kcal, g)
+  - Format: "539 kcal", "6.3 g"
+  - Test decimal precision (0.001, 999.99)
+  - Test zero values explicitly
+- **Text Overflow**: Test long product names, brands, and categories
+- **Empty Fields**: Spanish text for missing data
+  - Brand: "Marca no disponible"
+  - Category: "Categoría no disponible"
+
+### ProductCard Test Organization
+1. **Happy Path** - All acceptance criteria (name, brand, category, image, price, nutrients, back button)
+2. **Image Handling** - Fallback for empty/""/null/undefined, alt text
+3. **Nutritional Information Display** - All nutriments + units, decimal formatting, zero values, extreme values
+4. **Price Display** - Currency formatting, decimals, boundaries (5.00, 150.00)
+5. **Responsive Design** - Mobile-first classes (w-full), card styling
+6. **Back Button Functionality** - Navigation to "/" via useRouter
+7. **Accessibility** - H1 heading, ARIA labels, semantic HTML
+8. **Edge Cases** - Long text, empty brand/category, large/small nutriment values
+9. **Visual States** - Card styling, spacing, grid layout
+10. **Barcode Display** - Monospace font, proper labeling
+
+### ProductCard Data-testid Attributes
+- `product-card` - Main container
+- `product-image-container` - Image wrapper
+- `product-brand` - Brand display (handles empty state)
+- `product-category` - Category display (handles empty state)
+- `product-barcode` - Barcode display with monospace
+- `nutriments-grid` - Nutritional info grid layout
+
+### ProductPage (Server Component) Testing Pattern
+- Mock `getProduct` server action
+- Mock `useHistoryStore` Zustand store
+- Mock `next/navigation` router
+- Test async behavior with `await ProductPage()` and `waitFor()`
+- **CRITICAL**: Verify history NOT saved on error (product not found should NOT call addItem)
+
+### ProductPage Test Organization
+1. **Happy Path** - Fetch product, render ProductCard, add to history with timestamp
+2. **Loading State** - Show skeleton with animation while fetching
+3. **Error Handling** - Product not found, network errors, NO history save on error
+4. **Parameter Handling** - Different barcode lengths (6-13 digits)
+5. **Server Component Behavior** - Async function, server-side fetch
+6. **SEO and Metadata** - Page title with product name + barcode
+7. **Edge Cases** - Missing fields, rapid page loads, boundary barcode lengths
+8. **Layout and Structure** - Mobile-first container, centered desktop layout
+9. **Integration with History Store** - Single addItem call, correct timestamp format (ISO 8601)
+
+### ProductPage Data-testid Attributes
+- `product-page-container` - Main page wrapper
+- `product-skeleton` - Loading state
+- `error-state` - Error display
+
+### Mock Product Test Data Patterns
+```typescript
+// Standard - Full valid product
+const mockProduct: Product = {
+  code: "3017620422003",
+  product_name: "Nutella",
+  brands: "Ferrero",
+  image_url: "https://example.com/nutella.jpg",
+  categories: "Spreads, Sweet spreads",
+  nutriments: { energy_kcal_100g: 539, proteins_100g: 6.3, carbohydrates_100g: 57.5, fat_100g: 30.9 },
+  simulated_price: 45.99,
+};
+
+// Without Image
+const mockProductWithoutImage = { ...mockProduct, image_url: "" };
+
+// Long Text - Test text overflow handling
+const mockProductLongText = {
+  ...mockProduct,
+  product_name: "Very Long Product Name That Should Be Truncated Or Wrapped...",
+  brands: "Very Long Brand Name...",
+  categories: "Cat1, Cat2, Cat3, Cat4, Cat5, Cat6",
+};
+
+// Edge Nutritional Values
+const productLargeValues = { nutriments: { energy_kcal_100g: 9999, proteins_100g: 999.99, ... } };
+const productSmallValues = { nutriments: { energy_kcal_100g: 0.01, proteins_100g: 0.001, ... } };
+```
+
+### Common Mocks for Product Display
+```typescript
+// Server action
+vi.mock("@/actions/product", () => ({
+  getProduct: vi.fn(),
+}));
+
+// Zustand store
+vi.mock("@/store/history", () => ({
+  useHistoryStore: vi.fn(() => ({
+    items: [],
+    addItem: vi.fn(),
+    clearHistory: vi.fn(),
+  })),
+}));
+
+// Next.js navigation
+vi.mock("next/navigation", () => ({
+  useRouter: vi.fn(() => ({ push: vi.fn() })),
+}));
+```
+
+### Expected Spanish UI Text
+- "Buscar otro producto" - Back button
+- "Código de barras" - Barcode label
+- "Calorías", "Proteínas", "Carbohidratos", "Grasas" - Nutriment labels
+- "Precio" - Price ARIA label
+- "Cargando" - Loading text
+- "Producto no encontrado" - Error message
+- "Verifica el código" - Error suggestion
+- "Buscar de nuevo" - Error retry button
+
+### Test Files Created
+- `components/product-card.test.tsx` - 56 test cases covering display, image handling, price, nutrients, accessibility, edge cases
+- `app/product/[barcode]/page.test.tsx` - 37 test cases covering server component, loading, errors, history integration, SEO

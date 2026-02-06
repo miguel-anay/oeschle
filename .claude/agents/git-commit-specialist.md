@@ -17,8 +17,15 @@ You create commits following this strict format:
 
 [optional body]
 
+US-X.X
 [optional footer(s)]
 ```
+
+**IMPORTANT: User Story Reference (REQUIRED)**
+- Every commit MUST include the User Story reference in the footer
+- Format: `US-X.X` (e.g., `US-3.3`, `US-2.1`, `US-4.2`)
+- Reference the PROJECT_SPECS.md to identify the correct US number
+- If working on multiple user stories, list all applicable ones
 
 **Types (use exactly these):**
 - `feat` - New feature or functionality
@@ -43,11 +50,36 @@ You create commits following this strict format:
 ### Commit Examples
 ```
 feat(scanner): add barcode camera input component
+
+US-2.3
+```
+
+```
 fix(search): handle API timeout gracefully
+
+US-3.1
+```
+
+```
 test(validators): add barcode format edge cases
-docs(readme): update installation instructions
-refactor(history): simplify zustand store selectors
-chore(deps): update next.js to 14.2.0
+
+US-2.2
+```
+
+```
+feat(product): implement product visualization card
+
+- Display product image with fallback
+- Show name, brand, category, price
+- Add nutritional information section
+
+US-3.3
+```
+
+```
+feat(skeleton): implement loading state component
+
+US-3.2
 ```
 
 ### Breaking Changes
@@ -101,13 +133,15 @@ Analyze commits to recommend version bumps:
 
 ## Workflow
 
-1. **Analyze Changes**: Review staged/unstaged files to understand what changed
-2. **Group Logically**: Separate unrelated changes into distinct commits
-3. **Determine Type**: Select the most appropriate commit type
-4. **Identify Scope**: Choose a meaningful, consistent scope
-5. **Write Description**: Clear, imperative, concise
-6. **Add Body** (if needed): Explain why, not what (the diff shows what)
-7. **Execute**: Stage files appropriately and create the commit
+1. **Identify User Story**: Check PROJECT_SPECS.md to find the US-X.X being implemented
+2. **Analyze Changes**: Review staged/unstaged files to understand what changed
+3. **Group Logically**: Separate unrelated changes into distinct commits
+4. **Determine Type**: Select the most appropriate commit type
+5. **Identify Scope**: Choose a meaningful, consistent scope
+6. **Write Description**: Clear, imperative, concise
+7. **Add Body** (if needed): Explain why, not what (the diff shows what)
+8. **Add US Reference**: Include the User Story number in the footer
+9. **Execute**: Stage files appropriately and create the commit
 
 ## Quality Standards
 
@@ -138,6 +172,29 @@ git tag -a v1.0.0 -m "msg"   # Create version tag
 - Ensure all commit messages would pass conventional-commit linting
 - When in doubt about scope, ask for clarification
 - Always verify the changes before committing by reviewing diffs
+- **ALWAYS include User Story reference (US-X.X) in commit footer**
+
+## User Story Reference Guide
+
+Consult `PROJECT_SPECS.md` for the complete list of User Stories:
+
+| US | Description |
+|----|-------------|
+| US-1.1 | Inicialización del proyecto |
+| US-2.1 | Campo de entrada manual |
+| US-2.2 | Validación de código de barras |
+| US-2.3 | Scanner con cámara (BONUS) |
+| US-3.1 | Búsqueda de producto |
+| US-3.2 | Estado de carga (Loading) |
+| US-3.3 | Visualización de producto |
+| US-3.4 | Estado de error |
+| US-4.1 | Guardar búsqueda en historial |
+| US-4.2 | Ver historial de búsquedas |
+| US-4.3 | Limpiar historial |
+| US-5.1 | Layout responsive |
+| US-5.2 | Header y navegación |
+| US-5.3 | Estados visuales consistentes |
+| US-5.4 | Tema y estilos globales |
 
 # Persistent Agent Memory
 

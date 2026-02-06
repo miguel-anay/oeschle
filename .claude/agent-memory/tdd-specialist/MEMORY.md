@@ -297,3 +297,82 @@ vi.mock("next/navigation", () => ({
 ### Test Files Created
 - `components/product-card.test.tsx` - 56 test cases covering display, image handling, price, nutrients, accessibility, edge cases
 - `app/product/[barcode]/page.test.tsx` - 37 test cases covering server component, loading, errors, history integration, SEO
+
+## Error State Testing (US-3.4)
+
+### ErrorState Component Testing Pattern
+- **Spanish UI Text**: Test exact Spanish phrases
+  - Default title: "Producto no encontrado"
+  - Default message: "Verifica el código e intenta de nuevo"
+  - Retry button: "Buscar de nuevo" OR "Volver a buscar"
+- **Props Interface**: `{ title?: string; message?: string; onRetry?: () => void }`
+- **Default Behavior**: Shows defaults when props undefined/not provided
+- **Optional Callbacks**: Component handles undefined/null onRetry gracefully
+- **data-testid attributes**: `error-state`, `error-icon`
+
+### ErrorState Test Organization
+1. **Happy Path** - Default title/message/button/icon display
+2. **Custom Content** - Props override defaults correctly, partial overrides
+3. **Retry Button Interaction** - Callback firing, multiple clicks, keyboard (Enter/Space)
+4. **Icon and Visual Elements** - Icon presence, styling, positioning above title
+5. **Accessibility** - role="alert", heading, button labeling, keyboard navigation
+6. **Responsive Design** - Mobile-first classes, centering, full-width button
+7. **Styling and Theme** - Error theme, typography, spacing, consistent gap
+8. **Edge Cases** - Empty strings, long text, rapid clicks, null callbacks
+9. **Component Structure** - DOM element order (icon → title → message → button)
+10. **Text Content Validation** - Exact Spanish phrases, no English text
+
+### DOM Order Verification Pattern
+```typescript
+const { container } = render(<ErrorState />);
+const html = container.innerHTML;
+expect(html.indexOf('error-icon')).toBeLessThan(html.indexOf('Producto no encontrado'));
+expect(html.indexOf('Producto no encontrado')).toBeLessThan(html.indexOf('Verifica el código'));
+```
+
+### Accessibility Requirements for Error Components
+- **role="alert"** - Container must be alert region for screen readers
+- **role="heading"** - Title must be proper heading
+- **Accessible button name** - Test with `getByRole('button', { name: /pattern/i })`
+- **Keyboard navigation** - Test Enter and Space key activation
+- **Focus management** - Button should be focusable
+- **Screen reader text** - Message text should be descriptive
+
+### Mobile-First Class Testing
+```typescript
+// Test for presence, not exact match
+expect(element).toHaveClass(/(flex|grid|space-y|p-|py-|px-)/);
+expect(element).toHaveClass(/(text-center|items-center|justify-center)/);
+expect(button).toHaveClass(/w-full|sm:/); // Full width on mobile
+```
+
+### Optional Callback Handling Pattern
+```typescript
+// Test component works without callback
+render(<ErrorState />);
+await user.click(button);
+// Should not throw
+
+// Test callback when provided
+const onRetry = vi.fn();
+render(<ErrorState onRetry={onRetry} />);
+await user.click(button);
+expect(onRetry).toHaveBeenCalledTimes(1);
+```
+
+### Edge Cases for Error Components
+- Empty string props: `title=""`, `message=""`
+- Very long Spanish text (>100 chars) - should wrap gracefully
+- Rapid successive clicks: `userEvent.tripleClick(button)`
+- Null vs undefined: `onRetry={null as unknown as undefined}`
+- All props undefined: `title={undefined} message={undefined} onRetry={undefined}`
+
+### Spanish Text Validation Checklist
+- [ ] "Producto no encontrado" - exact default title
+- [ ] "Verifica el código e intenta de nuevo" - exact default message
+- [ ] Button text matches pattern: `/buscar de nuevo|volver a buscar/i`
+- [ ] No English text present by default
+- [ ] Custom Spanish text displays correctly
+
+### Test Files Created
+- `components/error-state.test.tsx` - 94 test cases covering all acceptance criteria for US-3.4

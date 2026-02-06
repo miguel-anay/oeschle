@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+// Ensure the real store is used (not mocked by other tests)
+vi.unmock("./history");
+
 // Mock localStorage BEFORE importing the store (hoisted to top)
 let localStorageStore: Record<string, string> = {};
 

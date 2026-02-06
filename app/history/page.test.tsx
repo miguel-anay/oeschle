@@ -3,20 +3,19 @@ import { render, screen } from "@testing-library/react";
 import HistoryPage from "./page";
 import type { SearchHistoryItem } from "@/types/product";
 
-// Mock the Zustand store
+// Mock the Zustand store - return default state
+const mockState = {
+  items: [] as SearchHistoryItem[],
+  addItem: vi.fn(),
+  clearHistory: vi.fn(),
+  removeItem: vi.fn(),
+};
+
 vi.mock("@/store/history", () => ({
-  useHistoryStore: vi.fn(),
+  useHistoryStore: vi.fn(() => mockState),
 }));
 
-// Mock next/navigation
-vi.mock("next/navigation", () => ({
-  useRouter: vi.fn(() => ({
-    push: vi.fn(),
-    back: vi.fn(),
-  })),
-}));
-
-import { useHistoryStore } from "@/store/history";
+// Use global mock from vitest.setup.ts (next/navigation is mocked there)
 
 describe("HistoryPage", () => {
   const mockHistoryItems: SearchHistoryItem[] = [
@@ -36,34 +35,29 @@ describe("HistoryPage", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Reset mock state to default empty
+    mockState.items = [];
+    mockState.addItem = vi.fn();
+    mockState.clearHistory = vi.fn();
+    mockState.removeItem = vi.fn();
   });
 
   describe("Happy Path", () => {
     it("should render page title", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
 
       // Act
       render(<HistoryPage />);
 
       // Assert
-      const heading = screen.getByRole("heading", { name: /historial/i });
+      const heading = screen.getByRole("heading", { level: 1, name: /historial/i });
       expect(heading).toBeInTheDocument();
     });
 
     it("should render HistoryList component", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
 
       // Act
       render(<HistoryPage />);
@@ -75,12 +69,7 @@ describe("HistoryPage", () => {
 
     it("should render back to home button", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
 
       // Act
       render(<HistoryPage />);
@@ -92,12 +81,7 @@ describe("HistoryPage", () => {
 
     it("should have correct href on back button", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
 
       // Act
       render(<HistoryPage />);
@@ -111,12 +95,7 @@ describe("HistoryPage", () => {
   describe("Empty State", () => {
     it("should render empty state when no history items", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: [],
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = [];
 
       // Act
       render(<HistoryPage />);
@@ -127,29 +106,19 @@ describe("HistoryPage", () => {
 
     it("should still render page title when empty", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: [],
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = [];
 
       // Act
       render(<HistoryPage />);
 
       // Assert
-      const heading = screen.getByRole("heading", { name: /historial/i });
+      const heading = screen.getByRole("heading", { level: 1, name: /historial/i });
       expect(heading).toBeInTheDocument();
     });
 
     it("should still render back button when empty", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: [],
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = [];
 
       // Act
       render(<HistoryPage />);
@@ -163,12 +132,7 @@ describe("HistoryPage", () => {
   describe("Layout and Structure", () => {
     it("should have main content wrapper", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
 
       // Act
       render(<HistoryPage />);
@@ -180,29 +144,21 @@ describe("HistoryPage", () => {
 
     it("should use container with max-width for desktop", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
 
       // Act
       render(<HistoryPage />);
 
-      // Assert
+      // Assert - max-w-4xl and mx-auto are on the inner container div
       const main = screen.getByRole("main");
-      expect(main).toHaveClass("max-w-4xl", "mx-auto");
+      const container = main.querySelector(".max-w-4xl");
+      expect(container).toBeInTheDocument();
+      expect(container).toHaveClass("mx-auto");
     });
 
     it("should have appropriate padding for mobile", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
 
       // Act
       render(<HistoryPage />);
@@ -216,12 +172,7 @@ describe("HistoryPage", () => {
   describe("Accessibility", () => {
     it("should have semantic main element", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
 
       // Act
       render(<HistoryPage />);
@@ -233,12 +184,7 @@ describe("HistoryPage", () => {
 
     it("should have h1 heading for page title", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
 
       // Act
       render(<HistoryPage />);
@@ -250,12 +196,7 @@ describe("HistoryPage", () => {
 
     it("should have accessible navigation link", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
 
       // Act
       render(<HistoryPage />);
@@ -267,12 +208,7 @@ describe("HistoryPage", () => {
 
     it("should have proper document structure order", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
 
       // Act
       render(<HistoryPage />);
@@ -290,48 +226,35 @@ describe("HistoryPage", () => {
   describe("Mobile-First Design", () => {
     it("should have responsive layout classes", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
 
       // Act
       render(<HistoryPage />);
 
-      // Assert
+      // Assert - w-full is on the inner container
       const main = screen.getByRole("main");
-      expect(main).toHaveClass("w-full");
+      const container = main.querySelector(".w-full");
+      expect(container).toBeInTheDocument();
     });
 
     it("should have full width on mobile with max-width on desktop", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
 
       // Act
       render(<HistoryPage />);
 
-      // Assert
+      // Assert - max-w-4xl is on the inner container
       const main = screen.getByRole("main");
-      expect(main).toHaveClass("max-w-4xl");
+      const container = main.querySelector(".max-w-4xl");
+      expect(container).toBeInTheDocument();
     });
   });
 
   describe("Integration with HistoryList", () => {
     it("should pass store items to HistoryList component", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
 
       // Act
       render(<HistoryPage />);
@@ -345,12 +268,7 @@ describe("HistoryPage", () => {
 
     it("should render HistoryList with all functionality", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
 
       // Act
       render(<HistoryPage />);
@@ -373,18 +291,13 @@ describe("HistoryPage", () => {
       // For App Router, metadata is exported separately
 
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
 
       // Act
       render(<HistoryPage />);
 
       // Assert - At minimum, page should render successfully
-      expect(screen.getByRole("heading", { name: /historial/i })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { level: 1, name: /historial/i })).toBeInTheDocument();
     });
   });
 });

@@ -4,12 +4,20 @@ import userEvent from "@testing-library/user-event";
 import { HistoryList } from "./history-list";
 import type { SearchHistoryItem } from "@/types/product";
 
-// Mock the Zustand store
+// Mock the Zustand store with default state
+const mockClearHistory = vi.fn();
+const mockState = {
+  items: [] as SearchHistoryItem[],
+  addItem: vi.fn(),
+  clearHistory: mockClearHistory,
+  removeItem: vi.fn(),
+};
+
 vi.mock("@/store/history", () => ({
-  useHistoryStore: vi.fn(),
+  useHistoryStore: vi.fn(() => mockState),
 }));
 
-import { useHistoryStore } from "@/store/history";
+// Use global mockPush from vitest.setup.ts (next/navigation is mocked there)
 
 describe("HistoryList", () => {
   const mockHistoryItems: SearchHistoryItem[] = [
@@ -35,17 +43,18 @@ describe("HistoryList", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Reset mock state to default empty
+    mockState.items = [];
+    mockState.addItem = vi.fn();
+    mockState.clearHistory = mockClearHistory;
+    mockState.removeItem = vi.fn();
+    mockClearHistory.mockClear();
   });
 
   describe("Happy Path", () => {
     it("should render list of history items when items exist", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
 
       // Act
       render(<HistoryList />);
@@ -58,12 +67,7 @@ describe("HistoryList", () => {
 
     it("should render heading 'Historial de Búsquedas'", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
 
       // Act
       render(<HistoryList />);
@@ -75,12 +79,7 @@ describe("HistoryList", () => {
 
     it("should render all items from store in correct order (most recent first)", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
 
       // Act
       render(<HistoryList />);
@@ -101,12 +100,7 @@ describe("HistoryList", () => {
 
     it("should render clear history button when items exist", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
 
       // Act
       render(<HistoryList />);
@@ -117,40 +111,27 @@ describe("HistoryList", () => {
       expect(clearButton).toBeVisible();
     });
 
-    it("should call clearHistory when clear button is clicked", async () => {
+    it("should call clearHistory when clear button is clicked and confirmed", async () => {
       // Arrange
-      const clearHistory = vi.fn();
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory,
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
       const user = userEvent.setup();
       render(<HistoryList />);
 
       const clearButton = screen.getByRole("button", { name: /limpiar historial/i });
 
-      // Act
+      // Act - Click clear and then confirm
       await user.click(clearButton);
+      const confirmButton = screen.getByRole("button", { name: /confirmar|eliminar/i });
+      await user.click(confirmButton);
 
       // Assert
-      expect(clearHistory).toHaveBeenCalledTimes(1);
+      expect(mockClearHistory).toHaveBeenCalledTimes(1);
     });
 
     it("should navigate to product detail when history item is clicked", async () => {
       // Arrange
-      const mockPush = vi.fn();
-      vi.mock("next/navigation", () => ({
-        useRouter: () => ({ push: mockPush }),
-      }));
-
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      globalThis.mockPush.mockClear();
+      mockState.items = mockHistoryItems;
       const user = userEvent.setup();
       render(<HistoryList />);
 
@@ -160,19 +141,14 @@ describe("HistoryList", () => {
       await user.click(nutellaItem);
 
       // Assert
-      expect(mockPush).toHaveBeenCalledWith("/product/3017620422003");
+      expect(globalThis.mockPush).toHaveBeenCalledWith("/product/3017620422003");
     });
   });
 
   describe("Empty State", () => {
     it("should render empty state when no history items exist", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: [],
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = [];
 
       // Act
       render(<HistoryList />);
@@ -183,12 +159,7 @@ describe("HistoryList", () => {
 
     it("should render empty state message with helpful text", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: [],
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = [];
 
       // Act
       render(<HistoryList />);
@@ -199,12 +170,7 @@ describe("HistoryList", () => {
 
     it("should render empty state icon", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: [],
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = [];
 
       // Act
       render(<HistoryList />);
@@ -216,12 +182,7 @@ describe("HistoryList", () => {
 
     it("should NOT render clear history button when empty", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: [],
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = [];
 
       // Act
       render(<HistoryList />);
@@ -232,12 +193,7 @@ describe("HistoryList", () => {
 
     it("should NOT render any history items when empty", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: [],
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = [];
 
       // Act
       render(<HistoryList />);
@@ -251,12 +207,7 @@ describe("HistoryList", () => {
   describe("Edge Cases", () => {
     it("should handle single item in history", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: [mockHistoryItems[0]],
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = [mockHistoryItems[0]];
 
       // Act
       render(<HistoryList />);
@@ -276,12 +227,7 @@ describe("HistoryList", () => {
         searched_at: new Date(2026, 1, 6, 10, i).toISOString(),
       }));
 
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: maxItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = maxItems;
 
       // Act
       render(<HistoryList />);
@@ -293,34 +239,19 @@ describe("HistoryList", () => {
 
     it("should maintain order after clearing and re-populating", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
 
       const { rerender } = render(<HistoryList />);
 
       // Act - Clear history
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: [],
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = [];
       rerender(<HistoryList />);
 
       // Assert empty state
       expect(screen.getByText(/no hay búsquedas recientes/i)).toBeInTheDocument();
 
       // Act - Add items again
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
       rerender(<HistoryList />);
 
       // Assert order maintained
@@ -332,13 +263,7 @@ describe("HistoryList", () => {
   describe("User Interactions", () => {
     it("should show confirmation modal before clearing history", async () => {
       // Arrange
-      const clearHistory = vi.fn();
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory,
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
       const user = userEvent.setup();
       render(<HistoryList />);
 
@@ -354,13 +279,7 @@ describe("HistoryList", () => {
 
     it("should NOT clear history if user cancels confirmation", async () => {
       // Arrange
-      const clearHistory = vi.fn();
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory,
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
       const user = userEvent.setup();
       render(<HistoryList />);
 
@@ -372,18 +291,12 @@ describe("HistoryList", () => {
       await user.click(cancelButton);
 
       // Assert
-      expect(clearHistory).not.toHaveBeenCalled();
+      expect(mockClearHistory).not.toHaveBeenCalled();
     });
 
     it("should clear history if user confirms", async () => {
       // Arrange
-      const clearHistory = vi.fn();
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory,
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
       const user = userEvent.setup();
       render(<HistoryList />);
 
@@ -395,18 +308,12 @@ describe("HistoryList", () => {
       await user.click(confirmButton);
 
       // Assert
-      expect(clearHistory).toHaveBeenCalledTimes(1);
+      expect(mockClearHistory).toHaveBeenCalledTimes(1);
     });
 
     it("should close confirmation modal after confirming", async () => {
       // Arrange
-      const clearHistory = vi.fn();
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory,
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
       const user = userEvent.setup();
       render(<HistoryList />);
 
@@ -425,12 +332,7 @@ describe("HistoryList", () => {
   describe("Accessibility", () => {
     it("should have accessible heading hierarchy", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
 
       // Act
       render(<HistoryList />);
@@ -442,12 +344,7 @@ describe("HistoryList", () => {
 
     it("should have accessible labels for clear button", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
 
       // Act
       render(<HistoryList />);
@@ -459,12 +356,7 @@ describe("HistoryList", () => {
 
     it("should have list with proper semantic structure", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
 
       // Act
       render(<HistoryList />);
@@ -479,12 +371,7 @@ describe("HistoryList", () => {
 
     it("should have keyboard navigable history items", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
 
       // Act
       render(<HistoryList />);
@@ -500,12 +387,7 @@ describe("HistoryList", () => {
   describe("Mobile-First Design", () => {
     it("should render with full width container", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
 
       // Act
       render(<HistoryList />);
@@ -517,12 +399,7 @@ describe("HistoryList", () => {
 
     it("should have appropriate spacing between items", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
 
       // Act
       render(<HistoryList />);
@@ -534,12 +411,7 @@ describe("HistoryList", () => {
 
     it("should position clear button appropriately on mobile", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: mockHistoryItems,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = mockHistoryItems;
 
       // Act
       render(<HistoryList />);
@@ -553,12 +425,7 @@ describe("HistoryList", () => {
   describe("Error States", () => {
     it("should handle undefined items gracefully", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: undefined as any,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = undefined as any;
 
       // Act
       render(<HistoryList />);
@@ -569,12 +436,7 @@ describe("HistoryList", () => {
 
     it("should handle null items gracefully", () => {
       // Arrange
-      vi.mocked(useHistoryStore).mockReturnValue({
-        items: null as any,
-        addItem: vi.fn(),
-        clearHistory: vi.fn(),
-        removeItem: vi.fn(),
-      });
+      mockState.items = null as any;
 
       // Act
       render(<HistoryList />);

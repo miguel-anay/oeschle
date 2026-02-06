@@ -139,7 +139,7 @@ describe('CameraScanner', () => {
 
       await waitFor(() => {
         expect(mockStart).toHaveBeenCalledWith(
-          { facingMode: 'environment' },
+          { facingMode: { exact: 'environment' } },
           expect.objectContaining({
             fps: 10,
             qrbox: { width: 250, height: 150 },
@@ -195,12 +195,15 @@ describe('CameraScanner', () => {
       await userEvent.click(button);
 
       await waitFor(() => {
-        expect(mockOnError).toHaveBeenCalledWith(permissionError.message);
+        // Implementation provides user-friendly error message
+        expect(mockOnError).toHaveBeenCalledWith(
+          'Camera permission denied. Please allow camera access in your browser settings.'
+        );
       });
     });
 
     it('should handle onError callback when camera fails to start', async () => {
-      const error = new Error('Camera not found');
+      const error = new Error('NotFoundError: Camera not found');
       mockStart.mockRejectedValue(error);
 
       render(<CameraScanner onScan={mockOnScan} onError={mockOnError} />);
@@ -209,7 +212,8 @@ describe('CameraScanner', () => {
       await userEvent.click(button);
 
       await waitFor(() => {
-        expect(mockOnError).toHaveBeenCalledWith(error.message);
+        // Implementation provides user-friendly error message
+        expect(mockOnError).toHaveBeenCalledWith('No camera found on this device.');
       });
     });
 
@@ -240,8 +244,9 @@ describe('CameraScanner', () => {
       await userEvent.click(button);
 
       await waitFor(() => {
+        // Implementation provides user-friendly error message containing "permission denied"
         expect(mockOnError).toHaveBeenCalledWith(
-          expect.stringContaining('Permission denied')
+          expect.stringContaining('permission denied')
         );
       });
     });

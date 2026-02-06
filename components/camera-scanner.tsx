@@ -25,12 +25,18 @@ const SCANNER_CONFIG = {
 export function CameraScanner({ onScan, onError }: CameraScannerProps) {
   const [isActive, setIsActive] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showContainer, setShowContainer] = useState(false);
   const scannerRef = useRef<Html5Qrcode | null>(null);
 
   const startScanner = async () => {
     if (isLoading) return;
 
     setIsLoading(true);
+    // Show the container first so it exists in DOM before scanner initializes
+    setShowContainer(true);
+
+    // Wait for next render cycle so container is in DOM
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     try {
       const scanner = new Html5Qrcode("scanner-container");
@@ -117,6 +123,7 @@ export function CameraScanner({ onScan, onError }: CameraScannerProps) {
 
       onError?.(errorMessage);
       setIsActive(false);
+      setShowContainer(false);
     } finally {
       setIsLoading(false);
     }
@@ -135,6 +142,7 @@ export function CameraScanner({ onScan, onError }: CameraScannerProps) {
       }
     }
     setIsActive(false);
+    setShowContainer(false);
   };
 
   const handleButtonClick = () => {
@@ -158,12 +166,13 @@ export function CameraScanner({ onScan, onError }: CameraScannerProps) {
           // Ignore errors during cleanup
         }
       }
+      setShowContainer(false);
     };
   }, []);
 
   return (
     <div className="space-y-4">
-      {isActive && (
+      {showContainer && (
         <div
           id="scanner-container"
           data-testid="scanner-container"

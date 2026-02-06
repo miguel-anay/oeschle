@@ -88,13 +88,12 @@ describe('CameraScanner', () => {
       const startButton = screen.getByRole('button', { name: /activar cámara/i });
       await userEvent.click(startButton);
 
-      await waitFor(() => {
-        expect(screen.getByTestId('scanner-container')).toBeInTheDocument();
-      });
+      // Wait for scanner to fully initialize and button text to change
+      const stopButton = await screen.findByRole('button', { name: /cerrar cámara/i });
+      expect(screen.getByTestId('scanner-container')).toBeInTheDocument();
 
       // Stop camera
       mockIsScanning.mockReturnValue(false);
-      const stopButton = screen.getByRole('button', { name: /cerrar cámara/i });
       await userEvent.click(stopButton);
 
       await waitFor(() => {
@@ -456,23 +455,26 @@ describe('CameraScanner', () => {
       const button = screen.getByRole('button', { name: /activar cámara/i });
 
       // Start
-      await userEvent.click(button);
-      await waitFor(() => expect(mockStart).toHaveBeenCalled());
-
       mockIsScanning.mockReturnValue(true);
+      await userEvent.click(button);
+
+      // Wait for button text to change to "Cerrar cámara"
+      const stopButton = await screen.findByRole('button', { name: /cerrar cámara/i });
+      expect(mockStart).toHaveBeenCalled();
 
       // Stop
-      const stopButton = screen.getByRole('button', { name: /cerrar cámara/i });
       await userEvent.click(stopButton);
       await waitFor(() => expect(mockStop).toHaveBeenCalled());
 
       mockIsScanning.mockReturnValue(false);
 
-      // Start again
-      const restartButton = screen.getByRole('button', { name: /activar cámara/i });
+      // Wait for button to change back to "Activar cámara"
+      const restartButton = await screen.findByRole('button', { name: /activar cámara/i });
       await userEvent.click(restartButton);
 
-      expect(mockStart).toHaveBeenCalledTimes(2);
+      await waitFor(() => {
+        expect(mockStart).toHaveBeenCalledTimes(2);
+      });
     });
 
     it('should not crash if scanner container ref is null', async () => {

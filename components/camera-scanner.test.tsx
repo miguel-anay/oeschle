@@ -122,7 +122,7 @@ describe('CameraScanner', () => {
 
       // Simulate barcode detection
       if (scanCallback) {
-        scanCallback(testBarcode);
+        (scanCallback as (text: string) => void)(testBarcode);
       }
 
       expect(mockOnScan).toHaveBeenCalledWith(testBarcode);
@@ -174,7 +174,7 @@ describe('CameraScanner', () => {
       // Simulate barcode detection
       if (scanCallback) {
         mockIsScanning.mockReturnValue(false);
-        scanCallback(testBarcode);
+        (scanCallback as (text: string) => void)(testBarcode);
       }
 
       await waitFor(() => {
@@ -265,7 +265,7 @@ describe('CameraScanner', () => {
       expect(button).toBeDisabled();
 
       // Resolve the promise
-      if (resolveStart) resolveStart();
+      if (resolveStart) (resolveStart as () => void)();
 
       await waitFor(() => {
         expect(button).not.toBeDisabled();
@@ -292,7 +292,7 @@ describe('CameraScanner', () => {
       // Should only call start once
       expect(mockStart).toHaveBeenCalledTimes(1);
 
-      if (resolveStart) resolveStart();
+      if (resolveStart) (resolveStart as () => void)();
     });
   });
 
@@ -436,7 +436,7 @@ describe('CameraScanner', () => {
 
       // Simulate empty barcode detection
       if (scanCallback) {
-        scanCallback('');
+        (scanCallback as (text: string) => void)('');
       }
 
       expect(mockOnScan).toHaveBeenCalledWith('');

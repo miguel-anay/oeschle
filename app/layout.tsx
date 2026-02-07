@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import { cn } from "@/lib/utils";
+import { Header } from "@/components/header";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -25,7 +26,8 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={cn(inter.className, "min-h-screen antialiased")}>
-        <div className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8">
+        <Header />
+        <div className="mx-auto w-full max-w-5xl px-4 pb-20 sm:px-6 sm:pb-0 lg:px-8">
           {children}
         </div>
         <Toaster

@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function ProductNotFound() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center py-6 sm:py-8 lg:py-12">
+    <main className="flex min-h-[calc(100vh-3.5rem)] flex-col items-center justify-center py-6 sm:min-h-[calc(100vh-4rem)] sm:py-8 lg:py-12">
       <div className="w-full max-w-md space-y-6 text-center sm:space-y-8">
         <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-muted">
           <svg
@@ -23,9 +23,7 @@ export default function ProductNotFound() {
           </svg>
         </div>
 
-        <h1 className="text-2xl font-bold sm:text-3xl">
-          Producto no encontrado
-        </h1>
+        <h1 className="text-2xl font-bold sm:text-3xl">Producto no encontrado</h1>
         <p className="text-sm text-muted-foreground sm:text-base">
           Verifica el código de barras e intenta de nuevo
         </p>

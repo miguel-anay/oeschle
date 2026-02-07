@@ -376,3 +376,190 @@ expect(onRetry).toHaveBeenCalledTimes(1);
 
 ### Test Files Created
 - `components/error-state.test.tsx` - 94 test cases covering all acceptance criteria for US-3.4
+
+## Search History Testing (US-4.1, US-4.2, US-4.3)
+
+### US-4.3 (Limpiar historial) - Visual Feedback Gap (2026-02-06)
+
+**Existing Coverage:**
+- Store logic fully tested in `store/history.test.ts` (clearHistory function)
+- Component behavior tested in `components/history-list.test.tsx`:
+  - ✅ Clear button visibility
+  - ✅ Confirmation modal (AlertDialog)
+  - ✅ Cancel/confirm flow
+  - ✅ Empty state after clearing
+
+**CRITICAL GAP - Visual Feedback:**
+- ❌ NO toast/notification system implemented
+- ❌ NO visual success feedback after clear operation
+- ❌ NO error handling feedback for failed clear operations
+- ❌ Acceptance criteria "Feedback visual al completar" NOT implemented or tested
+
+**New Test File Created:** `components/history-list-visual-feedback.test.tsx`
+- 25+ failing tests covering visual feedback requirements
+- Tests assume toast/notification system (not yet installed)
+- Tests cover:
+  - Success messages with count ("2 productos eliminados")
+  - Auto-dismiss after 3-5 seconds
+  - Manual dismiss with close button
+  - Error feedback for failed operations
+  - Aria-live announcements for screen readers
+  - Mobile positioning (bottom for thumb reach)
+  - Touch target sizes (44x44px minimum)
+  - Keyboard accessibility (Escape to dismiss)
+
+### Toast/Notification System Requirements
+
+**Current State:** NO toast system in project
+- Checked: no `toast.tsx`, `sonner.tsx`, or `use-toast.ts` in `components/ui/`
+- Available UI components: input, card, skeleton, alert-dialog, button
+
+**Recommendation for Implementation:**
+1. **Best Option: Sonner** - Modern, simple, React-friendly
+   ```bash
+   pnpm add sonner
+   ```
+2. Alternative: shadcn/ui toast component
+   ```bash
+   npx shadcn-ui@latest add toast
+   ```
+3. Alternative: react-hot-toast (lightweight)
+
+**Implementation Steps:**
+1. Install sonner: `pnpm add sonner`
+2. Add `<Toaster />` to `app/layout.tsx` (at root level)
+3. Update `components/history-list.tsx`:
+   ```typescript
+   import { toast } from 'sonner';
+
+   const handleConfirmClear = () => {
+     const count = items.length;
+     clearHistory();
+     setShowConfirmDialog(false);
+     toast.success(`${count} ${count === 1 ? 'producto eliminado' : 'productos eliminados'} del historial`);
+   };
+   ```
+
+### Test Pattern: Visual Feedback with Toast
+
+**Template for Testing Toast Notifications:**
+```typescript
+// Wait for toast to appear
+await waitFor(() => {
+  expect(screen.getByText(/historial eliminado correctamente/i)).toBeInTheDocument();
+});
+
+// Check for proper role (Sonner uses status)
+const successToast = screen.getByRole("status");
+expect(successToast).toHaveAttribute("aria-live", "polite");
+
+// Test auto-dismiss with fake timers
+vi.useFakeTimers();
+vi.advanceTimersByTime(3000);
+await waitFor(() => {
+  expect(screen.queryByText(/historial eliminado/i)).not.toBeInTheDocument();
+});
+vi.useRealTimers();
+
+// Test manual dismiss
+const closeButton = screen.getByRole("button", { name: /cerrar|close/i });
+await user.click(closeButton);
+expect(screen.queryByText(/historial eliminado/i)).not.toBeInTheDocument();
+```
+
+**Sonner-Specific Testing:**
+```typescript
+// Mock sonner if needed
+vi.mock('sonner', () => ({
+  toast: {
+    success: vi.fn(),
+    error: vi.fn(),
+  },
+  Toaster: () => null,
+}));
+
+// Verify toast.success was called
+expect(toast.success).toHaveBeenCalledWith('2 productos eliminados del historial');
+```
+
+### Common Edge Cases for Clear/Delete Operations
+
+1. **Success feedback** - toast/notification after operation
+2. **Error feedback** - if storage/network fails (catch in try/catch)
+3. **Count in message** - "2 productos eliminados" vs "1 producto eliminado" (singular)
+4. **Keyboard accessibility** - Escape to dismiss toast
+5. **Mobile positioning** - bottom toast for thumb reach (Sonner default)
+6. **Touch targets** - minimum 44x44px for mobile close button
+7. **Aria-live** - announce to screen readers (role="status", aria-live="polite")
+8. **Loading state** - disabled button during async operations
+9. **No feedback on cancel** - toast only shows on successful clear
+10. **Immediate feedback** - toast appears within 100ms of operation
+
+### Visual Feedback Test Categories
+
+1. **Success Feedback After Clearing**
+   - Display success toast message
+   - Descriptive message with count
+   - Success icon/color indicator
+   - Auto-dismiss after 3-5 seconds
+   - Manual dismissal option
+   - No toast on cancel
+
+2. **Visual State Transitions**
+   - Loading/processing state while clearing
+   - Smooth transition to empty state
+   - Hover states for clear button
+
+3. **Error Feedback (Edge Case)**
+   - Error toast if clear operation fails
+   - Error toast with retry option
+   - Descriptive error messages
+
+4. **Accessibility for Visual Feedback**
+   - aria-live="polite" for announcements
+   - role="status" for success
+   - role="alert" for errors
+   - Keyboard accessible dismiss (Escape)
+   - Focusable close button
+
+5. **Mobile-First Visual Feedback**
+   - Appropriate size for mobile (full width on small screens)
+   - Bottom positioning for thumb accessibility
+   - Sufficient touch target (44x44px close button)
+
+6. **UX Enhancements**
+   - Count of items cleared in message
+   - Singular vs plural: "1 producto" vs "2 productos"
+
+7. **Performance**
+   - Feedback appears immediately (<100ms)
+   - Non-blocking UI (remains interactive)
+
+### Files to Update for US-4.3 Complete Implementation
+
+1. **Install toast system:**
+   ```bash
+   pnpm add sonner
+   ```
+
+2. **Update root layout:**
+   - `app/layout.tsx` - Add `<Toaster />` component
+
+3. **Update component:**
+   - `components/history-list.tsx`
+   - Import toast from sonner
+   - Add success toast in handleConfirmClear
+   - Add error handling with try/catch and error toast
+
+4. **Verify tests pass:**
+   - All tests in `history-list-visual-feedback.test.tsx` should pass
+
+### Expected Spanish Text for Toasts
+
+- Success: "X productos eliminados del historial" (plural)
+- Success (singular): "1 producto eliminado del historial"
+- Error: "Error al eliminar historial"
+- Error with action: "Error al eliminar. Intenta de nuevo"
+
+### Test Files Created
+- `components/history-list-visual-feedback.test.tsx` - 25+ failing tests for visual feedback (US-4.3 acceptance criteria)

@@ -247,7 +247,7 @@ lg: 1024px
 **Para** acceder a búsqueda e historial
 
 **Criterios de aceptación:**
-- [ ] Header fijo con logo/título
+- [ ] Header fijo con logo/título public\logo__primary-color-oeschle.svg  , 
 - [ ] Link a Home (búsqueda)
 - [ ] Link a Historial
 - [ ] Indicador de página actual
@@ -277,11 +277,16 @@ lg: 1024px
 **Para** tener una buena experiencia de uso
 
 **Criterios de aceptación:**
-- [ ] Paleta de colores consistente
-- [ ] Tipografía legible (Inter o similar)
-- [ ] Espaciado consistente (usar scale de Tailwind)
-- [ ] Bordes redondeados consistentes
-- [ ] Sombras sutiles para elevación
+ [ ] Paleta de colores consistente  
+      Color primario Oechsle: rgb(255, 7, 5)
+- [ ] Tipografía legible  
+      Archivo (principal) o Inter como fallback
+- [ ] Espaciado consistente  
+      Usar escala de Tailwind (p-2, p-4, p-6, p-8)
+- [ ] Bordes redondeados consistentes  
+      rounded-md / rounded-lg en cards y botones
+- [ ] Sombras sutiles para elevación  
+      shadow-sm / shadow en cards de producto
 
 ---
 

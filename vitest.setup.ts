@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom";
-import { vi, beforeEach, type Mock } from "vitest";
+import { vi, beforeEach, afterEach, type Mock } from "vitest";
 
 // Mock next/navigation - define in global scope so tests can access
 const mockPush = vi.fn();
@@ -42,4 +42,9 @@ vi.mock("next/navigation", () => ({
 // Reset mocks between tests
 beforeEach(() => {
   mockPush.mockClear();
+});
+
+// Ensure timers are restored after each test to prevent pollution
+afterEach(() => {
+  vi.useRealTimers();
 });

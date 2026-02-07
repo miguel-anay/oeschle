@@ -2,8 +2,8 @@ import Link from "next/link";
 
 export default function ProductNotFound() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-6 text-center">
+    <main className="flex min-h-screen flex-col items-center justify-center py-6 sm:py-8 lg:py-12">
+      <div className="w-full max-w-md space-y-6 text-center sm:space-y-8">
         <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-muted">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -23,14 +23,16 @@ export default function ProductNotFound() {
           </svg>
         </div>
 
-        <h1 className="text-2xl font-bold">Producto no encontrado</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-2xl font-bold sm:text-3xl">
+          Producto no encontrado
+        </h1>
+        <p className="text-sm text-muted-foreground sm:text-base">
           Verifica el código de barras e intenta de nuevo
         </p>
 
         <Link
           href="/"
-          className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          className="inline-flex min-h-[44px] items-center justify-center rounded-md bg-primary px-6 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 sm:text-base"
         >
           Volver a buscar
         </Link>

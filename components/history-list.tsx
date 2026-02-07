@@ -107,7 +107,7 @@ export function HistoryList() {
             type="button"
             onClick={handleClearClick}
             aria-label="Limpiar historial"
-            className="w-full rounded-md border border-destructive px-4 py-2 text-sm text-destructive hover:bg-destructive hover:text-destructive-foreground sm:w-auto"
+            className="min-h-[44px] w-full rounded-md border border-destructive px-4 py-2 text-sm text-destructive hover:bg-destructive hover:text-destructive-foreground sm:w-auto"
           >
             Limpiar historial
           </button>

@@ -17,9 +17,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
     const product = await getProduct(barcode);
 
     return (
-      <div
+      <main
         data-testid="product-page-container"
-        className="w-full max-w-2xl mx-auto p-4"
+        className="mx-auto w-full max-w-2xl py-6 sm:py-8 lg:py-12"
       >
         <TitleUpdater title={`${product.product_name} - ${barcode}`} />
         <HistoryUpdater
@@ -28,13 +28,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
           image_url={product.image_url}
         />
         <ProductCard product={product} />
-      </div>
+      </main>
     );
   } catch {
     return (
-      <div
+      <main
         data-testid="product-page-container"
-        className="w-full max-w-2xl mx-auto p-4"
+        className="mx-auto w-full max-w-2xl py-6 sm:py-8 lg:py-12"
       >
         <div
           data-testid="error-state"
@@ -60,16 +60,18 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </div>
 
           <p className="text-sm text-muted-foreground">Error</p>
-          <h1 className="text-2xl font-bold">Producto no encontrado</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-bold sm:text-3xl">
+            Producto no encontrado
+          </h1>
+          <p className="text-sm text-muted-foreground sm:text-base">
             Verifica el código e intenta de nuevo
           </p>
 
           <Link href="/">
-            <Button>Buscar de nuevo</Button>
+            <Button className="min-h-[44px]">Buscar de nuevo</Button>
           </Link>
         </div>
-      </div>
+      </main>
     );
   }
 }

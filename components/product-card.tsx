@@ -28,7 +28,7 @@ export function ProductCard({ product }: ProductCardProps) {
       data-testid="product-card"
       className={cn(
         "w-full rounded-lg border bg-card text-card-foreground shadow-sm",
-        "space-y-4 p-6"
+        "space-y-4 p-4 sm:p-6"
       )}
     >
       {/* Product Image */}
@@ -39,12 +39,12 @@ export function ProductCard({ product }: ProductCardProps) {
         <img
           src={imageUrl}
           alt={product.product_name}
-          className="h-48 w-full object-contain"
+          className="h-48 w-full object-contain sm:h-64"
         />
       </div>
 
       {/* Product Name */}
-      <h1 className="text-2xl font-bold">{product.product_name}</h1>
+      <h1 className="text-xl font-bold sm:text-2xl">{product.product_name}</h1>
 
       {/* Brand */}
       <p data-testid="product-brand" className="text-muted-foreground">
@@ -102,7 +102,7 @@ export function ProductCard({ product }: ProductCardProps) {
       </div>
 
       {/* Back Button */}
-      <Button onClick={handleBackClick} className="w-full">
+      <Button onClick={handleBackClick} className="w-full sm:w-auto">
         Buscar otro producto
       </Button>
     </div>

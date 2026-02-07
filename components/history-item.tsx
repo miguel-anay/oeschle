@@ -34,7 +34,7 @@ export function HistoryItem({ item, onClick }: HistoryItemProps) {
       onKeyDown={handleKeyDown}
       tabIndex={0}
       aria-label={`Ver producto ${item.product_name}`}
-      className="flex w-full items-center gap-4 rounded-lg border bg-card p-4 text-left transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+      className="flex w-full items-center gap-3 rounded-lg border bg-card p-3 text-left transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:gap-4 sm:p-4"
     >
       <img
         src={item.image_url || "/placeholder.png"}

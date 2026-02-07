@@ -19,10 +19,12 @@ export default function HomePage() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-6 text-center">
-        <h1 className="text-3xl font-bold text-foreground">Barcode Scanner</h1>
-        <p className="text-muted-foreground">
+    <main className="flex min-h-screen flex-col items-center justify-center py-6 sm:py-8 lg:py-12">
+      <div className="w-full max-w-md space-y-6 text-center sm:space-y-8">
+        <h1 className="text-2xl font-bold text-foreground sm:text-3xl lg:text-4xl">
+          Barcode Scanner
+        </h1>
+        <p className="text-sm text-muted-foreground sm:text-base">
           Escanea o ingresa un código de barras para buscar productos
         </p>
         <BarcodeInput onSearch={handleSearch} />
@@ -41,7 +43,7 @@ export default function HomePage() {
 
         <Link
           href="/history"
-          className="inline-block text-sm text-primary hover:underline"
+          className="inline-flex min-h-[44px] items-center justify-center text-sm text-primary hover:underline sm:text-base"
         >
           Ver historial de búsquedas
         </Link>

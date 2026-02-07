@@ -13,12 +13,16 @@ export default function Error({ error, reset }: ErrorProps) {
   }, [error]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-4">
-      <h2 className="text-xl font-semibold text-destructive">Algo salió mal</h2>
-      <p className="text-muted-foreground">{error.message}</p>
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4 py-6 sm:py-8 lg:py-12">
+      <h2 className="text-xl font-semibold text-destructive sm:text-2xl">
+        Algo salió mal
+      </h2>
+      <p className="text-sm text-muted-foreground sm:text-base">
+        {error.message}
+      </p>
       <button
         onClick={reset}
-        className="rounded-md bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90"
+        className="min-h-[44px] rounded-md bg-primary px-6 py-2 text-primary-foreground hover:bg-primary/90"
       >
         Intentar de nuevo
       </button>

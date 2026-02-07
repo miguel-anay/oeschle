@@ -27,7 +27,7 @@ export function ProductCard({ product }: ProductCardProps) {
     <div
       data-testid="product-card"
       className={cn(
-        "w-full rounded-lg border bg-card text-card-foreground shadow-sm",
+        "w-full animate-fadeInUp rounded-lg border bg-card text-card-foreground shadow-sm",
         "space-y-4 p-4 sm:p-6"
       )}
     >

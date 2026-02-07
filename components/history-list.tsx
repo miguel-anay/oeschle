@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { useHistoryStore } from "@/store/history";
 import { HistoryItem } from "./history-item";
-import { HistoryToast, TOAST_STATUS } from "./history-toast";
-import type { ToastStatus, ToastAction } from "./history-toast";
+import { cn } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,33 +17,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-interface ToastState {
-  isVisible: boolean;
-  message: string;
-  status: ToastStatus;
-  action?: ToastAction;
-}
-
-const INITIAL_TOAST_STATE: ToastState = {
-  isVisible: false,
-  message: "",
-  status: TOAST_STATUS.SUCCESS,
-  action: undefined,
-};
-
 export function HistoryList() {
   const router = useRouter();
   const { items, clearHistory } = useHistoryStore();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
-  const [toast, setToast] = useState<ToastState>(INITIAL_TOAST_STATE);
 
   const safeItems = items ?? [];
   const isEmpty = safeItems.length === 0;
-
-  const handleDismissToast = useCallback(() => {
-    setToast((prev) => ({ ...prev, isVisible: false }));
-  }, []);
 
   const handleItemClick = (code: string) => {
     router.push(`/product/${code}`);
@@ -65,23 +46,15 @@ export function HistoryList() {
           ? "1 producto eliminado del historial"
           : `${itemCount} productos eliminados del historial`;
 
-      setToast({
-        isVisible: true,
-        message: `${message}. Historial eliminado correctamente`,
-        status: TOAST_STATUS.SUCCESS,
-        action: undefined,
+      toast.success("Historial eliminado correctamente", {
+        description: message,
       });
     } catch {
-      setToast({
-        isVisible: true,
-        message: "Error al eliminar historial",
-        status: TOAST_STATUS.ERROR,
+      toast.error("Error al eliminar historial", {
+        description: "Intenta de nuevo",
         action: {
           label: "Reintentar",
-          onClick: () => {
-            handleDismissToast();
-            handleConfirmClear();
-          },
+          onClick: () => handleConfirmClear(),
         },
       });
     } finally {
@@ -107,7 +80,12 @@ export function HistoryList() {
             type="button"
             onClick={handleClearClick}
             aria-label="Limpiar historial"
-            className="min-h-[44px] w-full rounded-md border border-destructive px-4 py-2 text-sm text-destructive hover:bg-destructive hover:text-destructive-foreground sm:w-auto"
+            className={cn(
+              "min-h-[44px] w-full rounded-md border border-destructive px-4 py-2",
+              "text-sm text-destructive transition-colors",
+              "hover:bg-destructive hover:text-destructive-foreground",
+              "sm:w-auto"
+            )}
           >
             Limpiar historial
           </button>
@@ -115,7 +93,7 @@ export function HistoryList() {
       </div>
 
       {isEmpty ? (
-        <div className="animate-fadeIn rounded-lg border border-dashed p-8 text-center transition-opacity duration-300">
+        <div className="animate-fadeInUp rounded-lg border border-dashed p-8 text-center">
           <img
             src="/empty-search.svg"
             alt="Empty state"
@@ -132,7 +110,7 @@ export function HistoryList() {
       ) : (
         <ul role="list" className="space-y-2">
           {safeItems.map((item) => (
-            <li key={item.code} role="listitem">
+            <li key={item.code} role="listitem" className="animate-fadeIn">
               <HistoryItem item={item} onClick={handleItemClick} />
             </li>
           ))}
@@ -161,14 +139,6 @@ export function HistoryList() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <HistoryToast
-        message={toast.message}
-        status={toast.status}
-        isVisible={toast.isVisible}
-        onDismiss={handleDismissToast}
-        action={toast.action}
-      />
     </section>
   );
 }

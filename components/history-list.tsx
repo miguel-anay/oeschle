@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useHistoryStore } from "@/store/history";
 import { HistoryItem } from "./history-item";
+import { HistoryToast, TOAST_STATUS } from "./history-toast";
+import type { ToastStatus, ToastAction } from "./history-toast";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,13 +17,33 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+interface ToastState {
+  isVisible: boolean;
+  message: string;
+  status: ToastStatus;
+  action?: ToastAction;
+}
+
+const INITIAL_TOAST_STATE: ToastState = {
+  isVisible: false,
+  message: "",
+  status: TOAST_STATUS.SUCCESS,
+  action: undefined,
+};
+
 export function HistoryList() {
   const router = useRouter();
   const { items, clearHistory } = useHistoryStore();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
+  const [toast, setToast] = useState<ToastState>(INITIAL_TOAST_STATE);
 
   const safeItems = items ?? [];
   const isEmpty = safeItems.length === 0;
+
+  const handleDismissToast = useCallback(() => {
+    setToast((prev) => ({ ...prev, isVisible: false }));
+  }, []);
 
   const handleItemClick = (code: string) => {
     router.push(`/product/${code}`);
@@ -31,9 +53,41 @@ export function HistoryList() {
     setShowConfirmDialog(true);
   };
 
-  const handleConfirmClear = () => {
-    clearHistory();
-    setShowConfirmDialog(false);
+  const handleConfirmClear = async () => {
+    const itemCount = safeItems.length;
+    setIsClearing(true);
+
+    try {
+      await Promise.resolve(clearHistory());
+
+      const message =
+        itemCount === 1
+          ? "1 producto eliminado del historial"
+          : `${itemCount} productos eliminados del historial`;
+
+      setToast({
+        isVisible: true,
+        message: `${message}. Historial eliminado correctamente`,
+        status: TOAST_STATUS.SUCCESS,
+        action: undefined,
+      });
+    } catch {
+      setToast({
+        isVisible: true,
+        message: "Error al eliminar historial",
+        status: TOAST_STATUS.ERROR,
+        action: {
+          label: "Reintentar",
+          onClick: () => {
+            handleDismissToast();
+            handleConfirmClear();
+          },
+        },
+      });
+    } finally {
+      setIsClearing(false);
+      setShowConfirmDialog(false);
+    }
   };
 
   const handleCancelClear = () => {
@@ -61,7 +115,7 @@ export function HistoryList() {
       </div>
 
       {isEmpty ? (
-        <div className="rounded-lg border border-dashed p-8 text-center">
+        <div className="animate-fadeIn rounded-lg border border-dashed p-8 text-center transition-opacity duration-300">
           <img
             src="/empty-search.svg"
             alt="Empty state"
@@ -98,12 +152,23 @@ export function HistoryList() {
             <AlertDialogCancel onClick={handleCancelClear}>
               Cancelar
             </AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmClear}>
-              Eliminar
+            <AlertDialogAction
+              onClick={handleConfirmClear}
+              disabled={isClearing}
+            >
+              {isClearing ? "Eliminando..." : "Eliminar"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <HistoryToast
+        message={toast.message}
+        status={toast.status}
+        isVisible={toast.isVisible}
+        onDismiss={handleDismissToast}
+        action={toast.action}
+      />
     </section>
   );
 }
